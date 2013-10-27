@@ -26,7 +26,7 @@ func draw(scr goncurses.Window) {
 
 func db_init(db *sql.DB) {
     sql := `
-    create table if not exists tweets (id integer not null primary key, user text, tweet_body text, create_time text);
+    create table if not exists tweets (id integer not null primary key, twitter_id text, user text, tweet_body text, create_time text);
     `
     _, err := db.Exec(sql)
     if err != nil {
@@ -38,6 +38,7 @@ func db_init(db *sql.DB) {
 }
 
 type Tweet struct {
+    twitter_id string
     user string
     tweet_body string
     create_time time.Time
@@ -48,12 +49,12 @@ func db_add_tweet(db *sql.DB, t Tweet) {
     if err != nil {
         log.Fatal(err)
     }
-    stmt, err := tx.Prepare("insert into tweets(user, tweet_body, create_time) values(?, ?, ?)")
+    stmt, err := tx.Prepare("insert into tweets(twitter_id, user, tweet_body, create_time) values(?, ?, ?)")
     if err != nil {
         log.Fatal(err)
     }
     defer stmt.Close()
-    _, err = stmt.Exec(t.user, t.tweet_body, t.create_time.UTC().Format(time.RFC3339))
+    _, err = stmt.Exec(t.twitter_id, t.user, t.tweet_body, t.create_time.UTC().Format(time.RFC3339))
     if err != nil {
         log.Fatal(err)
     }
@@ -62,19 +63,20 @@ func db_add_tweet(db *sql.DB, t Tweet) {
 
 func db_get_tweets(db *sql.DB) *[]Tweet {
     result := make([]Tweet, 0)
-    rows, err := db.Query("select id, user, tweet_body, create_time from tweets")
+    rows, err := db.Query("select id, twitter_id, user, tweet_body, create_time from tweets")
     if err != nil {
         log.Fatal(err)
     }
     defer rows.Close()
     for rows.Next() {
         var id int
+        var twitter_id string
         var user string
         var tweet_body string
         var create_time_string string
-        rows.Scan(&id, &user, &tweet_body, &create_time_string)
+        rows.Scan(&id, &twitter_id, &user, &tweet_body, &create_time_string)
         var create_time, _ = time.Parse(time.RFC3339, create_time_string)
-        var tweet = Tweet{user, tweet_body, create_time}
+        var tweet = Tweet{twitter_id, user, tweet_body, create_time}
         result = append(result, tweet)
     }
     rows.Close()
@@ -99,7 +101,7 @@ func main() {
     defer db.Close()
 
     db_init(db)
-    //db_add_tweet(db, Tweet{"cbhl", "This isn't a real tweet, Clarisse.", time.Now()})
+    //db_add_tweet(db, Tweet{"0", "cbhl", "This isn't a real tweet, Clarisse.", time.Now()})
     tweets := db_get_tweets(db)
 
     draw(scr)
