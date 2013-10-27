@@ -11,17 +11,25 @@ import (
     "time"
 )
 
-func draw(scr goncurses.Window) {
+func draw(scr goncurses.Window, tweets *[]Tweet) {
     scr.Keypad(true)
-    _, width := scr.Maxyx()
-    title := "#sehackday"
-    scr.MovePrint(0, (width - len(title))/2, title)
+    height, width := scr.Maxyx()
+    title := "  #sehackday  "
     scr.Move(1,0)
-    scr.Print("Hello, Clarisse.")
+    scr.ClearToBottom()
+    for _, t := range *tweets {
+        scr.Printf("%s\n%s %s\n\n", t.tweet_body, t.user, t.create_time.Format(time.Kitchen))
+    }
+    scr.Move(height-1,0)
+    scr.ClearToBottom()
+    scr.Move(0,0)
+    scr.ClearToEOL()
+    scr.MovePrint(0, (width - len(title))/2, title)
+    scr.Move(0,0)
     scr.Refresh()
-    //scr.GetChar()
+    scr.GetChar()
 
-    time.Sleep(1 * time.Second)
+    //time.Sleep(10 * time.Second)
 }
 
 func db_init(db *sql.DB) {
@@ -104,5 +112,5 @@ func main() {
     //db_add_tweet(db, Tweet{"0", "cbhl", "This isn't a real tweet, Clarisse.", time.Now()})
     tweets := db_get_tweets(db)
 
-    draw(scr)
+    draw(scr, tweets)
 }
