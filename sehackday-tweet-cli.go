@@ -10,6 +10,17 @@ import (
     "os"
 )
 
+func draw(scr goncurses.Window) {
+    scr.Keypad(true)
+    _, width := scr.Maxyx()
+    title := "#sehackday"
+    scr.MovePrint(0, (width - len(title))/2, title)
+    scr.Move(1,0)
+    scr.Print("Hello, world.")
+    scr.Refresh()
+    scr.GetChar()
+}
+
 func main() {
     // Initialize the screen.
     // WARNING: ncurses is not thread-safe.
@@ -21,12 +32,5 @@ func main() {
     }
     defer goncurses.End() // Clean up when we're done.
 
-    scr.Keypad(true)
-    _, width := scr.Maxyx()
-    title := "#sehackday"
-    scr.MovePrint(0, (width - len(title))/2, title)
-    scr.Move(1,0)
-    scr.Print("Hello, world.")
-    scr.Refresh()
-    scr.GetChar()
+    draw(scr)
 }
