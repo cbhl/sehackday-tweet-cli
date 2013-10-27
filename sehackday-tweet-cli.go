@@ -57,7 +57,7 @@ func db_add_tweet(db *sql.DB, t Tweet) {
     if err != nil {
         log.Fatal(err)
     }
-    stmt, err := tx.Prepare("insert into tweets(twitter_id, user, tweet_body, create_time) values(?, ?, ?)")
+    stmt, err := tx.Prepare("insert into tweets(twitter_id, user, tweet_body, create_time) values(?, ?, ?, ?)")
     if err != nil {
         log.Fatal(err)
     }
