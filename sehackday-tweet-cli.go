@@ -2,9 +2,9 @@ package main
 
 import (
     "code.google.com/p/goncurses"
-//    "github.com/mattn/go-sqlite3"
+    _ "github.com/mattn/go-sqlite3"
 //    "github.com/araddon/httpstream"
-//    "database/sql"
+    "database/sql"
 //    "fmt"
     "log"
     "os"
@@ -24,6 +24,19 @@ func draw(scr goncurses.Window) {
     time.Sleep(1 * time.Second)
 }
 
+func db_init(db *sql.DB) {
+    sql := `
+    create table if not exists tweets (id integer not null primary key, user text, tweet_body text, create_time text);
+    `
+    _, err := db.Exec(sql)
+    if err != nil {
+        log.Printf("%q: %s\n", err, sql)
+
+        goncurses.End()
+        os.Exit(1)
+    }
+}
+
 func main() {
     // Initialize the screen.
     // WARNING: ncurses is not thread-safe.
@@ -34,6 +47,14 @@ func main() {
         os.Exit(1)
     }
     defer goncurses.End() // Clean up when we're done.
+
+    db, err := sql.Open("sqlite3", "./cms.db")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close()
+
+    db_init(db)
 
     draw(scr)
 }
