@@ -16,7 +16,7 @@ func draw(scr goncurses.Window) {
     title := "#sehackday"
     scr.MovePrint(0, (width - len(title))/2, title)
     scr.Move(1,0)
-    scr.Print("Hello, world.")
+    scr.Print("Hello, Clarisse.")
     scr.Refresh()
     scr.GetChar()
 }
