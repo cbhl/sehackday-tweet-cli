@@ -3,7 +3,8 @@ package main
 import (
     "code.google.com/p/goncurses"
     _ "github.com/mattn/go-sqlite3"
-//    "github.com/araddon/httpstream"
+    oauth "github.com/araddon/goauth"
+    "github.com/araddon/httpstream"
     "database/sql"
 //    "fmt"
     "log"
@@ -113,4 +114,24 @@ func main() {
     tweets := db_get_tweets(db)
 
     draw(scr, tweets)
+
+    // make a go channel for sending from listener to processor
+    // we buffer it, to help ensure we aren't backing up twitter or else they cut us off
+    stream := make(chan []byte, 1000)
+    done := make(chan bool)
+
+    _ = stream
+    _ = done
+
+    httpstream.OauthCon = &oauth.OAuthConsumer{
+            Service:          "twitter",
+            RequestTokenURL:  "http://twitter.com/oauth/request_token",
+            AccessTokenURL:   "http://twitter.com/oauth/access_token",
+            AuthorizationURL: "http://twitter.com/oauth/authorize",
+            ConsumerKey:      os.Getenv("SE_CK"),
+            ConsumerSecret:   os.Getenv("SE_CS"),
+            CallBackURL:      "oob",
+            UserAgent:        "go/httpstream",
+    }
+
 }
