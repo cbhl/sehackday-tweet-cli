@@ -3,8 +3,8 @@ package main
 import (
     "code.google.com/p/goncurses"
     _ "github.com/mattn/go-sqlite3"
-    oauth "github.com/araddon/goauth"
-    "github.com/araddon/httpstream"
+    _ "github.com/araddon/goauth"
+    _ "github.com/araddon/httpstream"
     "database/sql"
 //    "fmt"
     "log"
@@ -16,10 +16,10 @@ func draw(scr goncurses.Window, tweets *[]Tweet) {
     scr.Keypad(true)
     height, width := scr.Maxyx()
     title := "  #sehackday  "
-    scr.Move(1,0)
+    scr.Move(3,0)
     scr.ClearToBottom()
     for _, t := range *tweets {
-        scr.Printf("%s\n%s %s\n\n", t.tweet_body, t.user, t.create_time.Format(time.Kitchen))
+        scr.Printf("%s\n    --%s\n\n", t.tweet_body, t.user)
     }
     scr.Move(height-1,0)
     scr.ClearToBottom()
@@ -92,28 +92,8 @@ func db_get_tweets(db *sql.DB) *[]Tweet {
     return &result
 }
 
-func main() {
-    // Initialize the screen.
-    // WARNING: ncurses is not thread-safe.
-    // TODO(cbhl): isolate ncurses code into a GUI goroutine
-    scr, err := goncurses.Init()
-    if err != nil {
-        log.Fatal("init:", err)
-        os.Exit(1)
-    }
-    defer goncurses.End() // Clean up when we're done.
-
-    db, err := sql.Open("sqlite3", "./cms.db")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer db.Close()
-
-    db_init(db)
-    //db_add_tweet(db, Tweet{"0", "cbhl", "This isn't a real tweet, Clarisse.", time.Now()})
-    tweets := db_get_tweets(db)
-
-    draw(scr, tweets)
+/*
+func twitter() (stream <-chan, done <-chan) {
 
     // make a go channel for sending from listener to processor
     // we buffer it, to help ensure we aren't backing up twitter or else they cut us off
@@ -133,5 +113,55 @@ func main() {
             CallBackURL:      "oob",
             UserAgent:        "go/httpstream",
     }
+
+    at := oauth.AccessToken{Id: "",
+            Token:    os.Getenv("SE_OT"),
+            Secret:   os.Getenv("SE_OTS"),
+            UserRef:  os.Getenv("SE_USER"),
+            Verifier: "",
+            Service:  "twitter",
+    }
+
+    // the stream listener effectively operates in one "thread"/goroutine
+    // as the httpstream Client processes inside a go routine it opens
+    // That includes the handler func we pass in here
+    client := httpstream.NewOAuthClient(&at, httpstream.OnlyTweetsFilter(func(line []byte) {
+            stream <- line
+            // although you can do heavy lifting here, it means you are doing all
+            // your work in the same thread as the http streaming/listener
+            // by using a go channel, you can send the work to a
+            // different thread/goroutine
+    }))
+
+}
+*/
+
+func main() {
+    // Initialize the screen.
+    // WARNING: ncurses is not thread-safe.
+    // TODO(cbhl): isolate ncurses code into a GUI goroutine
+    scr, err := goncurses.Init()
+    if err != nil {
+        log.Fatal("init:", err)
+        os.Exit(1)
+    }
+    defer goncurses.End() // Clean up when we're done.
+
+    db, err := sql.Open("sqlite3", "./cms.db")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close()
+
+    db_init(db)
+//    db_add_tweet(db, Tweet{"0", "hichamoaj", "#SEHackDay project with @RageAndQQ - Got it.", time.Now()})
+//    db_add_tweet(db, Tweet{"0", "RangeAndQQ", "Pretty successful #SEHackDay . Props to my main man @hichamoaj for our awesome app Got it.", time.Now()})
+//    db_add_tweet(db, Tweet{"0", "Nhieuton", "Sweetness. http://calvinhieu.github.io/BezierSnake/  #SEHackDay", time.Now()})
+//    db_add_tweet(db, Tweet{"0", "Hatcrab", "seen at #sehackday:\nmuchhash[\"is\"] = \"such\"\nwow", time.Now()})
+//    db_add_tweet(db, Tweet{"0", "TheRealKartik", "Just finished my project for #sehackday - an unofficial api for @mint https://t.co/4MHxoEwbhR", time.Now()})
+//    db_add_tweet(db, Tweet{"0", "lizuqiliang", "#sehackday #make_it_rain #withcode", time.Now()})
+    tweets := db_get_tweets(db)
+
+    draw(scr, tweets)
 
 }
