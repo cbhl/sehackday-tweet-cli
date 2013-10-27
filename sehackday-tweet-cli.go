@@ -8,6 +8,7 @@ import (
 //    "fmt"
     "log"
     "os"
+    "time"
 )
 
 func draw(scr goncurses.Window) {
@@ -18,7 +19,9 @@ func draw(scr goncurses.Window) {
     scr.Move(1,0)
     scr.Print("Hello, Clarisse.")
     scr.Refresh()
-    scr.GetChar()
+    //scr.GetChar()
+
+    time.Sleep(1 * time.Second)
 }
 
 func main() {
