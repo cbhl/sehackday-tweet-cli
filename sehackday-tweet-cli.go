@@ -37,6 +37,50 @@ func db_init(db *sql.DB) {
     }
 }
 
+type Tweet struct {
+    user string
+    tweet_body string
+    create_time time.Time
+}
+
+func db_add_tweet(db *sql.DB, t Tweet) {
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal(err)
+    }
+    stmt, err := tx.Prepare("insert into tweets(user, tweet_body, create_time) values(?, ?, ?)")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stmt.Close()
+    _, err = stmt.Exec(t.user, t.tweet_body, t.create_time.UTC().Format(time.RFC3339))
+    if err != nil {
+        log.Fatal(err)
+    }
+    tx.Commit()
+}
+
+func db_get_tweets(db *sql.DB) *[]Tweet {
+    result := make([]Tweet, 0)
+    rows, err := db.Query("select id, user, tweet_body, create_time from tweets")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer rows.Close()
+    for rows.Next() {
+        var id int
+        var user string
+        var tweet_body string
+        var create_time_string string
+        rows.Scan(&id, &user, &tweet_body, &create_time_string)
+        var create_time, _ = time.Parse(time.RFC3339, create_time_string)
+        var tweet = Tweet{user, tweet_body, create_time}
+        result = append(result, tweet)
+    }
+    rows.Close()
+    return &result
+}
+
 func main() {
     // Initialize the screen.
     // WARNING: ncurses is not thread-safe.
@@ -55,6 +99,8 @@ func main() {
     defer db.Close()
 
     db_init(db)
+    //db_add_tweet(db, Tweet{"cbhl", "This isn't a real tweet, Clarisse.", time.Now()})
+    tweets := db_get_tweets(db)
 
     draw(scr)
 }
